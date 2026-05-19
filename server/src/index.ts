@@ -4,9 +4,11 @@ import http from 'http';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { Server } from 'socket.io';
+import swaggerUi from 'swagger-ui-express';
 import routes from './routes/index';
 import { errorHandler } from './middleware/errorHandler';
 import { setupSockets } from './sockets/index';
+import { swaggerDocument } from './config/swagger';
 
 dotenv.config();
 
@@ -17,6 +19,7 @@ const server = http.createServer(app);
 const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:5173',
   'http://localhost:3000',
+  'https://teja-teatime-new-client.vercel.app',
 ];
 
 app.use(
@@ -40,6 +43,13 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// ── SWAGGER DOCS ────────────────────────────────
+app.get('/api-docs.json', (_req, res) => {
+  res.json(swaggerDocument);
+});
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // ── API ROUTES ────────────────────────────────────
 app.use('/api', routes);
