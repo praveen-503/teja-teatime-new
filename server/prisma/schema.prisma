@@ -1,0 +1,159 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────────────────────────────
+// TABLE
+// ─────────────────────────────────────────────
+model Table {
+  id       String   @id @default(cuid())
+  number   Int      @unique
+  label    String
+  isActive Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders         Order[]
+  waiterRequests WaiterRequest[]
+
+  @@map("tables")
+}
+
+// ─────────────────────────────────────────────
+// CATEGORY
+// ─────────────────────────────────────────────
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  image     String
+  sortOrder Int       @default(0)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  products  Product[]
+
+  @@map("categories")
+}
+
+// ─────────────────────────────────────────────
+// PRODUCT
+// ─────────────────────────────────────────────
+model Product {
+  id          String   @id @default(cuid())
+  categoryId  String
+  name        String
+  slug        String   @unique
+  description String
+  price       Float
+  image       String
+  rating      Float    @default(4.5)
+  reviewCount Int      @default(0)
+  isAvailable Boolean  @default(true)
+  isVeg       Boolean  @default(true)
+
+  // Customization options stored as JSON arrays
+  sugarLevels String[] @default(["No Sugar", "Less Sugar", "Normal", "Extra Sugar"])
+  spiceLevels String[] @default([])
+  addons      Json     @default("[]") // [{ name: string, price: number }]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  category   Category    @relation(fields: [categoryId], references: [id])
+  orderItems OrderItem[]
+
+  @@map("products")
+}
+
+// ─────────────────────────────────────────────
+// ORDER STATUS ENUM
+// ─────────────────────────────────────────────
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  PREPARING
+  READY
+  DELIVERED
+}
+
+// ─────────────────────────────────────────────
+// ORDER
+// ─────────────────────────────────────────────
+model Order {
+  id            String      @id @default(cuid())
+  tableId       String
+  status        OrderStatus @default(PENDING)
+  total         Float
+  notes         String?
+  estimatedTime Int         @default(15) // minutes
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  table      Table       @relation(fields: [tableId], references: [id])
+  orderItems OrderItem[]
+
+  @@map("orders")
+}
+
+// ─────────────────────────────────────────────
+// ORDER ITEM
+// ─────────────────────────────────────────────
+model OrderItem {
+  id         String  @id @default(cuid())
+  orderId    String
+  productId  String
+  quantity   Int
+  unitPrice  Float
+  sugarLevel String?
+  spiceLevel String?
+  addons     Json    @default("[]") // string[] — addon names selected
+
+  createdAt DateTime @default(now())
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+// ─────────────────────────────────────────────
+// WAITER REQUEST TYPE ENUM
+// ─────────────────────────────────────────────
+enum WaiterRequestType {
+  WATER
+  BILL
+  WAITER
+  TISSUE
+}
+
+enum WaiterRequestStatus {
+  PENDING
+  RESOLVED
+}
+
+// ─────────────────────────────────────────────
+// WAITER REQUEST
+// ─────────────────────────────────────────────
+model WaiterRequest {
+  id          String              @id @default(cuid())
+  tableId     String
+  requestType WaiterRequestType
+  status      WaiterRequestStatus @default(PENDING)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  table Table @relation(fields: [tableId], references: [id])
+
+  @@map("waiter_requests")
+}

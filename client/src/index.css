@@ -1,0 +1,199 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── FONTS ─────────────────────────────────────────────── */
+:root {
+  --font-poppins: 'Poppins', sans-serif;
+  --font-inter: 'Inter', sans-serif;
+}
+
+/* ── BASE RESET ─────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-inter);
+  background-color: #EBE1D5;
+  color: #1F1F1F;
+  overflow-x: hidden;
+  min-height: 100dvh;
+  /* Safe area for iOS notch */
+  padding-top: env(safe-area-inset-top);
+}
+
+#root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── MOBILE SHELL ───────────────────────────────────────── */
+.mobile-shell {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  background: #F8F1E7;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+/* ── SCROLL ─────────────────────────────────────────────── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── SAFE AREA BOTTOM NAV ───────────────────────────────── */
+.pb-safe {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
+}
+
+/* ── GLASS EFFECT ───────────────────────────────────────── */
+.glass {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-dark {
+  background: rgba(92, 59, 30, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(92, 59, 30, 0.15);
+}
+
+/* ── SKELETON LOADER ────────────────────────────────────── */
+@keyframes skeleton-shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #e8ddd0 0%,
+    #f5ede4 50%,
+    #e8ddd0 100%
+  );
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.5s infinite linear;
+  border-radius: 0.75rem;
+}
+
+/* ── CUSTOM SCROLLBAR (desktop) ─────────────────────────── */
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f8f1e7;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #d1b89a;
+    border-radius: 4px;
+  }
+}
+
+/* ── TOUCH ACTIVE STATE ─────────────────────────────────── */
+button:active, a:active {
+  transform: scale(0.97);
+  transition: transform 0.1s;
+}
+
+/* ── STATUS BAR COLORS (iOS) ────────────────────────────── */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* ── GRADIENT TEXT ──────────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #D98E04, #5C3B1E);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── BOTTOM NAV ─────────────────────────────────────────── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(224, 212, 197, 0.8);
+  box-shadow: 0 -4px 24px rgba(92, 59, 30, 0.08);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ── PAGE CONTENT WITH BOTTOM NAV ──────────────────────── */
+.page-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 5rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── INPUT STYLES ───────────────────────────────────────── */
+input:focus, textarea:focus {
+  outline: none;
+}
+
+/* ── IMAGE LOADING ──────────────────────────────────────── */
+img {
+  loading: lazy;
+}
+
+/* ── RATING STARS ───────────────────────────────────────── */
+.star-filled {
+  color: #D98E04;
+}
+.star-empty {
+  color: #e5d0b5;
+}
+
+/* ── STATUS COLORS ──────────────────────────────────────── */
+.status-pending   { color: #9B7653; background: #FFF3E0; }
+.status-accepted  { color: #1565C0; background: #E3F2FD; }
+.status-preparing { color: #E65100; background: #FFF3E0; }
+.status-ready     { color: #2E7D32; background: #E8F5E9; }
+.status-delivered { color: #5C3B1E; background: #F3E5D8; }
+
+/* ── VEG / NON-VEG INDICATOR ────────────────────────────── */
+.veg-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #22c55e;
+  border: 2px solid #16a34a;
+}
+
+/* ── PRICE ──────────────────────────────────────────────── */
+.price {
+  font-family: var(--font-poppins);
+  font-weight: 700;
+}
