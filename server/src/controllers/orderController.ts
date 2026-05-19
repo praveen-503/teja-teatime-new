@@ -1,10 +1,34 @@
 import { Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { Server } from 'socket.io';
 import prisma from '../config/prisma';
 import { AppError } from '../middleware/errorHandler';
 
+type IncomingOrderItem = {
+  productId: string;
+  quantity: number;
+  sugarLevel?: string | null;
+  spiceLevel?: string | null;
+  addons?: string[];
+};
+
+type AddonOption = {
+  name: string;
+  price: number;
+};
+
+type ProductForOrder = {
+  id: string;
+  price: number;
+  addons: Prisma.JsonValue;
+};
+
 export const createOrder = async (req: Request, res: Response): Promise<void> => {
-  const { tableNumber, items, notes } = req.body;
+  const { tableNumber, items, notes } = req.body as {
+    tableNumber: number;
+    items: IncomingOrderItem[];
+    notes?: string;
+  };
 
   if (!tableNumber || !items || !Array.isArray(items) || items.length === 0) {
     throw new AppError('tableNumber and items are required', 400);
@@ -17,8 +41,8 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
   }
 
   // Validate and fetch products to compute prices server-side
-  const productIds = items.map((item: any) => item.productId);
-  const products = await prisma.product.findMany({
+  const productIds = items.map((item) => item.productId);
+  const products: ProductForOrder[] = await prisma.product.findMany({
     where: { id: { in: productIds }, isAvailable: true },
   });
 
@@ -30,15 +54,17 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
 
   // Compute total server-side (trusted)
   let total = 0;
-  const orderItemsData = items.map((item: any) => {
+  const orderItemsData = items.map((item) => {
     const product = productMap.get(item.productId)!;
     const unitPrice = product.price;
 
     // Add addon prices
     const selectedAddons: string[] = item.addons || [];
-    const productAddons = product.addons as any[];
+    const productAddons = Array.isArray(product.addons)
+      ? (product.addons as AddonOption[])
+      : [];
     const addonTotal = selectedAddons.reduce((sum, addonName) => {
-      const addon = productAddons.find((a: any) => a.name === addonName);
+      const addon = productAddons.find((a) => a.name === addonName);
       return sum + (addon?.price || 0);
     }, 0);
 
