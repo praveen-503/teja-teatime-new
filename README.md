@@ -7,7 +7,7 @@ Tea Time is a QR-based ordering system for cafes and tea shops. It is structured
 - `client/` contains the Vite + React frontend.
 - `server/` contains the Node.js, TypeScript, Express, Prisma, and Socket.IO backend.
 - The root workspace uses npm workspaces to run both apps together during local development.
-- The backend exposes Swagger docs at `/api-docs` and the OpenAPI JSON at `/api-docs.json`.
+- The backend exposes Swagger docs at `/api/api-docs` and the OpenAPI JSON at `/api/api-docs.json`.
 
 ## Tech Stack
 
@@ -132,14 +132,14 @@ npm run db:studio
 
 When the backend is running, open:
 
-- Swagger UI: `/api-docs`
-- OpenAPI JSON: `/api-docs.json`
+- Swagger UI: `/api/api-docs`
+- OpenAPI JSON: `/api/api-docs.json`
 - Health check: `/health`
 
 Example local URL:
 
 ```text
-http://localhost:5001/api-docs
+http://localhost:5001/api/api-docs
 ```
 
 ## Deployment Notes
