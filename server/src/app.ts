@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import routes from './routes/index';
 import { errorHandler } from './middleware/errorHandler';
 import { swaggerDocument } from './config/swagger';
+import prisma from './config/prisma';
 
 dotenv.config();
 
@@ -35,6 +36,26 @@ app.use(express.urlencoded({ extended: true }));
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Database health check endpoint for debugging
+app.get('/health/db', async (_req, res) => {
+  try {
+    const result = await prisma.$queryRaw`SELECT 1`;
+    res.json({
+      status: 'ok',
+      database: 'connected',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err: any) {
+    res.status(503).json({
+      status: 'error',
+      database: 'disconnected',
+      message: err.message,
+      timestamp: new Date().toISOString(),
+      hint: 'Check DATABASE_URL and DIRECT_URL environment variables',
+    });
+  }
 });
 
 app.get('/api/api-docs.json', (_req, res) => {
