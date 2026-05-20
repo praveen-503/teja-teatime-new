@@ -20,7 +20,7 @@ type AddonOption = {
 type ProductForOrder = {
   id: string;
   price: number;
-  addons: Prisma.JsonValue;
+  addons: AddonOption[];
 };
 
 export const createOrder = async (req: Request, res: Response): Promise<void> => {
@@ -42,7 +42,7 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
 
   // Validate and fetch products to compute prices server-side
   const productIds = items.map((item) => item.productId);
-  const products: ProductForOrder[] = await prisma.product.findMany({
+  const products = await prisma.product.findMany({
     where: { id: { in: productIds }, isAvailable: true },
   });
 
@@ -50,7 +50,12 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
     throw new AppError('One or more products are unavailable', 400);
   }
 
-  const productMap = new Map(products.map((p) => [p.id, p]));
+  const productMap = new Map<string, ProductForOrder>(
+    products.map((p) => {
+      const addons = Array.isArray(p.addons) ? (p.addons as AddonOption[]) : [];
+      return [p.id, { id: p.id, price: p.price, addons }];
+    })
+  );
 
   // Compute total server-side (trusted)
   let total = 0;
