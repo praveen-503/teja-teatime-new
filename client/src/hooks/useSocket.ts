@@ -1,7 +1,30 @@
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5001';
+function resolveSocketUrl(): string {
+  const configuredSocketUrl = import.meta.env.VITE_SOCKET_URL?.trim();
+  if (configuredSocketUrl) {
+    try {
+      const parsed = new URL(configuredSocketUrl);
+      return parsed.origin;
+    } catch {
+      return configuredSocketUrl.replace(/\/$/, '');
+    }
+  }
+
+  const configuredApiUrl = import.meta.env.VITE_API_URL?.trim();
+  if (configuredApiUrl && !configuredApiUrl.startsWith('/')) {
+    try {
+      return new URL(configuredApiUrl).origin;
+    } catch {
+      // fall through to defaults below
+    }
+  }
+
+  return import.meta.env.PROD ? window.location.origin : 'http://localhost:5001';
+}
+
+const SOCKET_URL = resolveSocketUrl();
 
 let socketInstance: Socket | null = null;
 
@@ -9,7 +32,8 @@ function getSocket(): Socket {
   if (!socketInstance) {
     socketInstance = io(SOCKET_URL, {
       autoConnect: false,
-      transports: ['websocket', 'polling'],
+      path: '/socket.io',
+      transports: import.meta.env.PROD ? ['polling'] : ['websocket', 'polling'],
     });
   }
   return socketInstance;
