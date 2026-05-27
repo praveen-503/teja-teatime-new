@@ -26,6 +26,24 @@ function resolveSocketUrl(): string {
 
 const SOCKET_URL = resolveSocketUrl();
 
+function isSocketEnabled(): boolean {
+  const configured = import.meta.env.VITE_ENABLE_SOCKET?.trim().toLowerCase();
+
+  if (configured === 'true') return true;
+  if (configured === 'false') return false;
+
+  if (!import.meta.env.PROD) return true;
+
+  try {
+    const host = new URL(SOCKET_URL).hostname;
+    return !host.endsWith('.vercel.app');
+  } catch {
+    return !window.location.hostname.endsWith('.vercel.app');
+  }
+}
+
+const SOCKET_ENABLED = isSocketEnabled();
+
 let socketInstance: Socket | null = null;
 
 function getSocket(): Socket {
@@ -45,10 +63,13 @@ interface UseSocketOptions {
 }
 
 export function useSocket({ events, rooms = [] }: UseSocketOptions) {
-  const socketRef = useRef<Socket>(getSocket());
+  const socketRef = useRef<Socket | null>(SOCKET_ENABLED ? getSocket() : null);
 
   useEffect(() => {
+    if (!SOCKET_ENABLED) return;
+
     const socket = socketRef.current;
+    if (!socket) return;
 
     if (!socket.connected) {
       socket.connect();
