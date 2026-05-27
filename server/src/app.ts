@@ -58,6 +58,14 @@ app.get('/health/db', async (_req, res) => {
   }
 });
 
+app.get('/', (_req, res) => {
+  res.redirect('/api/api-docs');
+});
+
+app.get('/api', (_req, res) => {
+  res.redirect('/api/api-docs');
+});
+
 app.get('/api/api-docs.json', (_req, res) => {
   res.json(swaggerDocument);
 });

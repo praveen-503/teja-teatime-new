@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Star } from 'lucide-react';
+import { Minus, Plus, Star, Trash2 } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
 import type { Product } from '@/types';
 import toast from 'react-hot-toast';
@@ -12,7 +12,16 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, index = 0 }: ProductCardProps) {
   const navigate = useNavigate();
+  const items = useCartStore((state) => state.items);
   const addItem = useCartStore((state) => state.addItem);
+  const updateQuantity = useCartStore((state) => state.updateQuantity);
+  const removeItem = useCartStore((state) => state.removeItem);
+
+  const defaultSugarLevel = product.sugarLevels[2] || product.sugarLevels[0] || undefined;
+  const defaultSpiceLevel = product.spiceLevels[1] || product.spiceLevels[0] || undefined;
+  const defaultCartItemId = `${product.id}__${defaultSugarLevel || ''}__${defaultSpiceLevel || ''}__`;
+
+  const cartItem = items.find((item) => item.cartItemId === defaultCartItemId);
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -22,11 +31,33 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
       price: product.price,
       image: product.image,
       quantity: 1,
-      sugarLevel: product.sugarLevels[2] || product.sugarLevels[0] || undefined,
-      spiceLevel: product.spiceLevels[1] || product.spiceLevels[0] || undefined,
+      sugarLevel: defaultSugarLevel,
+      spiceLevel: defaultSpiceLevel,
       selectedAddons: [],
     });
     toast.success(`${product.name} added to cart!`);
+  };
+
+  const handleIncrease = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (cartItem) {
+      updateQuantity(cartItem.cartItemId, cartItem.quantity + 1);
+    } else {
+      handleQuickAdd(e);
+    }
+  };
+
+  const handleDecrease = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!cartItem) return;
+
+    if (cartItem.quantity === 1) {
+      removeItem(cartItem.cartItemId);
+      toast.success(`${product.name} removed from cart`);
+      return;
+    }
+
+    updateQuantity(cartItem.cartItemId, cartItem.quantity - 1);
   };
 
   return (
@@ -76,14 +107,40 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
             </span>
           </div>
 
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={handleQuickAdd}
-            className="flex items-center justify-center w-9 h-9 bg-amber-tea rounded-xl text-white shadow-primary hover:bg-amber-light transition-colors"
-            aria-label={`Add ${product.name} to cart`}
-          >
-            <Plus size={18} strokeWidth={2.5} />
-          </motion.button>
+          {cartItem ? (
+            <div className="flex items-center gap-1.5 bg-cream-100 rounded-2xl px-2 py-1">
+              <motion.button
+                whileTap={{ scale: 0.85 }}
+                onClick={handleDecrease}
+                className="w-7 h-7 flex items-center justify-center text-brown-500 hover:text-red-500 transition-colors"
+                aria-label={cartItem.quantity === 1 ? `Remove ${product.name} from cart` : `Decrease ${product.name} quantity`}
+              >
+                {cartItem.quantity === 1 ? <Trash2 size={14} /> : <Minus size={14} />}
+              </motion.button>
+
+              <span className="font-poppins font-semibold text-sm text-charcoal w-5 text-center">
+                {cartItem.quantity}
+              </span>
+
+              <motion.button
+                whileTap={{ scale: 0.85 }}
+                onClick={handleIncrease}
+                className="w-7 h-7 flex items-center justify-center text-brown-500 hover:text-amber-tea transition-colors"
+                aria-label={`Increase ${product.name} quantity`}
+              >
+                <Plus size={14} />
+              </motion.button>
+            </div>
+          ) : (
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={handleQuickAdd}
+              className="flex items-center justify-center w-9 h-9 bg-amber-tea rounded-xl text-white shadow-primary hover:bg-amber-light transition-colors"
+              aria-label={`Add ${product.name} to cart`}
+            >
+              <Plus size={18} strokeWidth={2.5} />
+            </motion.button>
+          )}
         </div>
       </div>
     </motion.div>
